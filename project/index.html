@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            margin: 0;
+        }
+        * {
+            box-sizing: border-box;
+        }
+        .container {
+            width: 500px;
+            margin: 0 auto;
+        }
+        .arrow {
+            stroke: red;
+            stroke-width: 2;
+            marker-end: url(#arrow);
+        }
+        text {
+            font-size: 24px;
+            fill: white;
+            text-anchor: middle;
+            dominant-baseline: middle;
+        }
+        #svgElement {
+            width: 100%;
+            min-height: 100vh;
+        }
+        .modal {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            visibility: hidden;
+            transform: scale(1.1);
+            transition: visibility 0s linear 0.25s, opacity 0.25s 0s, transform 0.25s;
+        }
+
+        .modal-content {
+            position: absolute;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 10px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 1rem 1.5rem;
+            width: 24rem;
+            border-radius: 0.5rem;
+        }
+
+        .close-button {
+            float: right;
+            width: 1.5rem;
+            line-height: 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 0.25rem;
+            background-color: lightgray;
+        }
+
+        .close-button:hover {
+            background-color: darkgray;
+        }
+
+        .show-modal {
+            opacity: 1;
+            visibility: visible;
+            transform: scale(1.0);
+            transition: visibility 0s linear 0s, opacity 0.25s 0s, transform 0.25s;
+        }
+    </style>
+	
+
+
+</head>
+<body>
+
+<div class="modal">
+    <div class="modal-content">
+        <span class="close-button">x</span>
+        <h1 id="modalText">Hello, I am a modal!</h1>
+    </div>
+</div>
+<svg xmlns="http://www.w3.org/2000/svg" id="svgElement">
+    <rect width="100%" height="100%" fill="#000" />
+    <defs>
+        <marker id="arrow" markerWidth="10" markerHeight="10" refX="8.7" refY="3" 
+          orient="auto" markerUnits="strokeWidth">
+          <path d="M0,0 L0,6 L9,3 z" fill="#f00" />
+        </marker>
+   </defs>
+</svg>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.0.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.3.4/gsap.min.js"></script>
+<script>
+    window.onresize = function(){ location.reload(); }
+    const modal = document.querySelector(".modal");
+    const closeButton = document.querySelector(".close-button");
+    let modalText = document.getElementById("modalText");
+    closeButton.addEventListener("click", toggleModal);
+
+    function toggleModal() {
+        modal.classList.toggle("show-modal");
+    }
+
+    function displayAlert(msg)
+    {
+        console.log(msg);
+        modalText.innerHTML = msg.name + "<br/>" + msg.description;
+        modal.classList.toggle("show-modal");
+    }
+
+    function conditionClicked(start, condition, end)
+    {
+        modalText.innerHTML = "From: " + start + "<br />" + "Condition: " + condition + "<br/>" + "To: " + end;
+        modal.classList.toggle("show-modal");
+    }
+
+    $(function () {
+        const svg = document.querySelector("svg");
+
+        // variable for the namspace
+        const svgns = "http://www.w3.org/2000/svg";
+        fetch('./detail.json')
+        .then(response => response.json())
+        .then(jsonData => {
+            //console.log(jsonData);
+
+            let setKeys = new Set();
+            let setValues = new Set();
+
+            let map = new Map();
+            jsonData.forEach((item, index) => {
+                let value = {...item, coordinates:{x:-1,y:-1}, level: 0}
+                map.set(item["name"], value);
+                setKeys.add(item["name"]);
+                item["next"].forEach((item ,index) => {
+                    setValues.add(item["name"]);
+                });
+                delete item["name"];
+            });
+
+            console.log(setKeys);
+            console.log(setValues);
+            
+            let result = new Set([...setKeys].filter(x => !setValues.has(x)));
+            const [root] = result;
+            const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0)
+            console.log(vw);
+
+
+            let circleDiameter = 100;
+            let circleRadius = circleDiameter / 2;
+
+            let spaceWidth = circleDiameter / 2;
+
+            
+            let startCoordinateX = vw/2 + (2.65*circleDiameter);
+            let startCoordinateY = 175;
+
+            var queue = [];
+            var set = new Set();
+            
+            set.add(root);
+            queue.push(root);
+            queue.push(null);
+            let count = 0;
+            let noOfElements = 1
+            let start = startCoordinateX - (2*circleDiameter);
+            while(queue.length != 0)
+            {
+                let key = queue.shift();
+                //console.log(key);
+                if(key == null){
+                    if(queue.length != 0){
+                        queue.push(null);
+                        count = count + 2;
+                        noOfElements = queue.length;
+                        start = startCoordinateX - (noOfElements*circleDiameter);
+                        console.log(start);
+                    }
+                }
+                else {
+
+                    let newCircle = document.createElementNS(svgns, "circle");
+
+                    gsap.set(newCircle, {
+                    attr: {
+                        cx: start,
+                        cy: startCoordinateY + (circleDiameter*count),
+                        r: circleRadius,
+                        fill: "#5cceee",
+                        class: "target"
+                    }
+                    });    
+                    newCircle.addEventListener('click', function() { displayAlert(map.get(key)) }, false);
+                    
+                    svg.appendChild(newCircle);
+                    
+                    let txt = document.createElementNS(svgns, "text");
+                    txt.textContent = key;
+                    
+                    gsap.set(txt, {
+                        x: start,
+                        y: startCoordinateY + (circleDiameter*count)
+                    });
+                    
+                    txt.addEventListener('click', function() { displayAlert(map.get(key)) }, false);
+                    
+                    svg.appendChild(txt);
+                    
+                    let value = map.get(key);
+
+                    value.coordinates.x = start;
+                    value.coordinates.y = startCoordinateY + (circleDiameter*count);
+                    value.level = count/2;
+
+                    map.set(key, value);
+
+                    start = start + circleDiameter + spaceWidth; 
+
+                    value["next"].forEach(element => {
+                        if(!set.has(element["name"])){
+                            set.add(element["name"]);
+                            queue.push(element["name"]);
+                        }
+                    });
+                }
+            }
+
+            let height = (circleDiameter*count) + startCoordinateY*2;
+            //document.getElementById('svgElement').style.height = height;
+            document.getElementById('svgElement').setAttribute('viewBox', ' 0 0 ' + window.screen.width + ' ' + height);
+
+            console.log(map);
+            for(const [key, value] of map.entries())
+            {
+                for(let children of value["next"]){
+                    let value1 = map.get(key);
+                    let value2 = map.get(children["name"]);
+                    let startCoordinates = value1.coordinates;
+                    let endCoordinates = value2.coordinates;
+
+                    let level1 = value1.level;
+                    let level2 = value2.level;
+
+                    if(level1 > level2)
+                        console.log("L1 = " + level1 + " L2 = " + level2);
+                    let x1_coordinates = level1 < level2 ? startCoordinates.x : level1 > level2 ? startCoordinates.x : startCoordinates.x < endCoordinates.x ? startCoordinates.x + circleRadius: startCoordinates.x - circleRadius;
+                    let x2_coordinates = level1 < level2 ? endCoordinates.x : level1 > level2 ? endCoordinates.x : startCoordinates.x < endCoordinates.x ? endCoordinates.x - circleRadius: endCoordinates.x + circleRadius;
+                    let y1_coordinates = level1 < level2 ? startCoordinates.y + circleRadius : level1 > level2 ? startCoordinates.y - circleRadius : startCoordinates.x < endCoordinates.x ? startCoordinates.y: startCoordinates.y ;
+                    let y2_coordinates = level1 < level2 ? endCoordinates.y - circleRadius : level1 > level2 ? endCoordinates.y + circleRadius: startCoordinates.x < endCoordinates.x ? endCoordinates.y: endCoordinates.y;
+                   
+
+                    let id = key + "_" + children["condition"];
+                    let dAttribute = "M " + x1_coordinates + " " + y1_coordinates + " L " + x2_coordinates + " " + y2_coordinates;
+                
+                    let path = document.createElementNS(svgns, "path");
+                    gsap.set(path, {
+                        attr: { d: dAttribute, class: "arrow", id: id}
+                    });
+                    svg.appendChild(path);
+
+                    var dynamictext = document.createElementNS(svgns, "text");
+                    
+                    var textpath = document.createElementNS(svgns, "textPath");
+                    var text = children["condition"];
+
+                    dynamictext.setAttribute('dy', -10);
+
+                    textpath.id="textpath" + id;
+                    textpath.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', "#"+id);
+                    textpath.setAttribute("startOffset","50%");
+                    textpath.setAttribute("text-anchor", "middle");
+                    textpath.setAttribute("fill","red");
+                    
+                    textpath.textContent = text;
+                    svg.appendChild(dynamictext);
+                    dynamictext.appendChild(textpath);
+
+                    textpath.addEventListener('click', function() { conditionClicked(key, children["condition"], children["name"])}, false);
+                    
+                }
+            }
+            console.log(map);
+            });
+    });
+</script>
+
+</body>
+</html>
+

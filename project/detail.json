@@ -1,0 +1,124 @@
+[
+{
+	"name":"node1",
+	"description":"node1 description",
+	"next":[
+		{
+			"name":"node2",
+			"condition":"CA"
+		},
+		{
+			"name":"node3",
+			"condition":"CB"
+		}]
+},
+{
+	"name":"node2",
+	"description":"node2 description",
+	"next":[
+		{
+			"name":"node4",
+			"condition":"CC"
+		},
+		{
+			"name":"node5",
+			"condition":"CD"
+		}]
+},
+{
+	"name":"node3",
+	"description":"node3 description",
+	"next":[
+		{
+			"name":"node6",
+			"condition":"CE"
+		},
+		{
+			"name":"node7",
+			"condition":"CF"
+		},
+		{
+			"name":"node2",
+			"condition":"CG"
+		}
+	]
+},
+{
+	"name":"node4",
+	"description":"node4 description",
+	"next":[{
+		"name":"node8",
+		"condition":"CH"
+	},
+	{
+		"name":"node9",
+		"condition":"CI"
+	},
+	{
+		"name":"node10",
+		"condition":"CJ"
+	}]
+},
+{
+	"name":"node5",
+	"description":"node4 description",
+	"next":[]
+},
+{
+	"name":"node6",
+	"description":"node4 description",
+	"next":[]
+},
+{
+	"name":"node7",
+	"description":"node4 description",
+	"next":[{
+		"name":"node2",
+		"condition":"CK"
+	}]
+},
+{
+	"name":"node8",
+	"description":"node4 description",
+	"next":[]
+},
+{
+	"name":"node9",
+	"description":"node4 description",
+	"next":[]
+},
+{
+	"name":"node10",
+	"description":"node4 description",
+	"next":[{
+		"name":"node11",
+		"condition":"CL"
+	},
+	{
+		"name":"node12",
+		"condition":"CM"
+	}]
+},
+{
+	"name":"node11",
+	"description":"node4 description",
+	"next":[{
+		"name":"node13",
+		"condition":"CN"
+	},
+	{
+		"name":"node12",
+		"condition":"CO"
+	}]
+},
+{
+	"name":"node12",
+	"description":"node4 description",
+	"next":[]
+},
+{
+	"name":"node13",
+	"description":"node4 description",
+	"next":[]
+}
+]
